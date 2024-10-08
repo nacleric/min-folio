@@ -9,8 +9,44 @@ a:hover {
 
 hr {
   border-top: rgb(229, 231, 235);
-
+  margin-top: -20px;
+  /* Adjust the top margin to your desired value */
 }
+
+pre {
+  background-color: #f4f4f4;
+
+  overflow-x: auto; /* Allows horizontal scrolling if code is too wide */
+}
+
+code {
+  font-family: monospace;
+  color: #c7254e;
+  background-color: #f9f2f4;
+}
+
+
+.navbar {
+  overflow: hidden;
+  display: flex;
+  justify-content: center;
+  position: sticky;
+  top: 0; /* Stick the navbar to the top */
+}
+
+.navbar a {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  text-align: center;
+  padding: 14px 20px;
+  text-decoration: none;
+  display: block;
+}
+
+/* .navbar a:hover {
+  background-color: #ddd;
+  color: black;
+} */
+
 
 h1 {
   font-size: 1.5rem;
