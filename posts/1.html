@@ -24,8 +24,9 @@
     <p>One programming paradigm that is overwhelmingly popular is Object Oriented programming. Even though languages
       like Golang doesn't have "OOP" in the way that C++ and Java has OOP. You can still model your data in an
       OOP-like fashion. My first intro to data-oriented programming was during my time doing data-engineering.
-      Our main focus is too enable our data-scientist to work more efficiently we'll typically model data in ways they
-      prefer to access it.</p>
+      Our main focus is to enable our data-scientist to work more efficiently. We'll typically model data in ways we
+      think
+      they'll have to access it.</p>
     <p>In OOP you model the data in a way we think of real world objects. In a
       Data-Oriented Design you're modeling data in a way we're trying to use it. As an example, lets say we have a
       collection of Dogs</p>
@@ -70,8 +71,10 @@
       https://stackoverflow.com/a/2021868</p>
 
     <h1>Pitfalls I ran into in Gamedev</h1>
-    <p>In the tactics game I'm working on, I have a Grid class which contains info of each cell and any data thats occupying that cell. This includes a pointer to a character which also contains data needed for rendering, animation data, coordinates and spritesheets. </p>
-      <pre>
+    <p>In the tactics game I'm working on, I have a Grid class which contains info of each cell and any data thats
+      occupying that cell. This includes a pointer to a character which also contains data needed for rendering,
+      animation data, coordinates and spritesheets. </p>
+    <pre>
         <code>
           type GridCell struct {
             x0         float32
@@ -97,11 +100,25 @@
 
         </code>
       </pre>
-      <p>
-       When I wrote this originally I sort of knew it was a bad idea to pass around pointers but it was hard to break away from the OOP mindset so I did it anyways. It's just more intuitive to think of things as individual objects rather than a group of related data. Games are messy, things will inevitably mutate other things, data is inherently tied to other moving parts within the system. Thinking in the form of individual pieces just does not work nicely. When I needed to move characters around the board the typical way to access Character data was to use indices of the Grid than access the objects attributes. Directly acessing a Character is fast, but introduced common problems associated with pointers, like nil pointers and dangling references. But the main problem I dealt with was implementing a history system. Since this is a tactics game it's important to rollback board states. Theres 2 ways to implement this. For every action, you do the opposite action or the simpler way is to just save the entire board state after every action. The former is more space efficient but harder to implement, the latter takes up more space but easier to implement since it's just the entire Grid saved into an array. For each action I was saving so many copies of the same pointer that didn't actually contain the data needed for history to work. I was running into so many bugs and had to refactor.</p>
-       <p>One thing I noticed is that I had several ways to access to move positions. I already had an array of characters that I was looping through each frame, while also having code that was accessing characters via the Grid Indices. Having 2 ways of accessing the same code made things incredibly confusing.
-       </p>
-       <pre>
+    <p>
+      When I wrote this originally I sort of knew it was a bad idea to pass around pointers but it was hard to break
+      away from the OOP mindset so I did it anyways. It's just more intuitive to think of things as individual objects
+      rather than a group of related data. Games are messy, things will inevitably mutate other things, data is
+      inherently tied to other moving parts within the system. Thinking in the form of individual pieces just does not
+      work nicely. When I needed to move characters around the board the typical way to access Character data was to use
+      indices of the Grid than access the objects attributes. Directly acessing a Character is fast, but introduced
+      common problems associated with pointers, like nil pointers and dangling references. But the main problem I dealt
+      with was implementing a history system. Since this is a tactics game it's important to rollback board states.
+      Theres 2 ways to implement this. For every action, you do the opposite action or the simpler way is to just save
+      the entire board state after every action. The former is more space efficient but harder to implement, the latter
+      takes up more space but easier to implement since it's just the entire Grid saved into an array. For each action I
+      was saving so many copies of the same pointer that didn't actually contain the data needed for history to work. I
+      was running into so many bugs and had to refactor.</p>
+    <p>One thing I noticed is that I had several ways to access to move positions. I already had an array of characters
+      that I was looping through each frame, while also having code that was accessing characters via the Grid Indices.
+      Having 2 ways of accessing the same code made things incredibly confusing.
+    </p>
+    <pre>
         <code>
           type GridCell struct {
             x0     float32
@@ -125,23 +142,39 @@
           }
         </code>
       </pre>
-      <p>The changes I made are small but the new one rid of having pointers within each cell. Whenever mutating any piece of data, I need to do that operation within the array of characters. This adds an extra look up step, but for now the characterID matches the indice, so it's O(1). But even if I use a UUID, I could easily switch to a hashtable so lookup will still be fast. These changes made debugging alot easier because of the simplified memory model. My debugger no longer has pointers everywhere, and accessing data is now more consistent since every operation goes through an array.</p>
-      <h1>Possible future changes</h1>
-      <p>So these changes don't completely show the Struct-Of-Array style of modeling data completely. It's more of a mix because I didn't want to drastically change everything all at once when I wasn't completely sure doing ID lookups was the right way to go. But after the refactor it fixed alot of the issues I was dealing with before.</p>
-      <pre>
+    <p>The changes I made are small but the new one rid of having pointers within each cell. Whenever mutating any piece
+      of data, I need to do that operation within the array of characters. This adds an extra look up step, but for now
+      the characterID matches the indice, so it's O(1). But even if I use a UUID, I could easily switch to a hashtable
+      so lookup will still be fast. These changes made debugging alot easier because of the simplified memory model. My
+      debugger no longer has pointers everywhere, and accessing data is now more consistent since every operation goes
+      through an array.</p>
+    <h1>Possible future changes</h1>
+    <p>So these changes don't completely show the Struct-Of-Array style of modeling data completely. It's more of a mix
+      because I didn't want to drastically change everything all at once when I wasn't completely sure doing ID lookups
+      was the right way to go. But after the refactor it fixed alot of the issues I was dealing with before.</p>
+    <pre>
       <code>
         type Characters struct {
           ids    []int
           pX     []int
           pY     []int
           rd     []RenderData
-      }
+        }
       </code>
     </pre>
-    <p>The code above is something I might possibly do in the future. Going back to how I don't really need to care for individual pieces of data, most things need to be done in a batch. Need to draw things to screen? I don't need IDs but I need every position and everyones RenderData. Mutating positions? I need everyones position and ID's but don't need RenderData. Tracking position history? I only need a list of positions. I rarely need to operate on every piece of data at once. Instead, most of my operations focus on specific sets of data. This makes Data-Oriented programming a bit more compelling. </p>
+    <p>The code above is something I might possibly do in the future. Going back to how I don't really need to care for
+      individual pieces of data, most things need to be done in a batch. Need to draw things to screen? I don't need IDs
+      but I need every position and everyones RenderData. Mutating positions? I need everyones position and ID's but
+      don't need RenderData. Tracking position history? I only need a list of positions. I rarely need to operate on
+      every piece of data at once. Instead, most of my operations focus on specific sets of data. This makes
+      Data-Oriented programming a bit more compelling. </p>
     <p>
-      The decision between Struct of Arrays (SoA) and Array of Structs (AoS) comes down to how data is accessed and processed. With AoS, individual data points are more easily accessible and managed as complete units, making it simpler for operations that involve entire structs. However, in scenarios where most operations involve handling specific fields in bulk—such as drawing positions or updating multiple attributes at once—SoA offers better performance and memory efficiency due to improved cache locality.
-      </p>
+      The decision between Struct of Arrays (SoA) and Array of Structs (AoS) comes down to how data is accessed and
+      processed. With AoS, individual data points are more easily accessible and managed as complete units, making it
+      simpler for operations that involve entire structs. However, in scenarios where most operations involve handling
+      specific fields in bulk—such as drawing positions or updating multiple attributes at once—SoA offers better
+      performance and memory efficiency due to improved cache locality.
+    </p>
   </section>
 
 </body>
